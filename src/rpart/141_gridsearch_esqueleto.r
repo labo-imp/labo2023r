@@ -112,13 +112,12 @@ cat(
   "ganancia_promedio", "\n"
 )
 
-
 # itero por los loops anidados para cada hiperparametro
 
 for (vcp_var in c(-1, -0.5, 0.2, 0, 75, 1)) {
-  for (vmax_depth in c(4, 6, 8, 10, 12, 14)) {
-    for (vmin_split in c(1000, 800, 600, 400, 200, 100, 50, 20, 10)) {
-      for (vmin_bucket in c(555, 777, 666, 444, 333)) {
+  for (vmax_depth in c(5, 7, 13, 17, 19, 23)) {
+    for (vmin_split in c(997, 887,569, 457, 251, 131, 53, 13, 7)) {
+      for (vmin_bucket in c(577, 337, 233, 173, 47)) {
         # notar como se agrega
         param_basicos <- list(
           "cp" = vcp_var, # complejidad minima
