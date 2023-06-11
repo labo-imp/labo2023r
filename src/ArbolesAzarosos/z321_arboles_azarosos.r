@@ -35,7 +35,7 @@ PARAM$num_trees_max <- 500
 #------------------------------------------------------------------------------
 # Aqui comienza el programa
 
-setwd("X:\\gdrive\\austral2023r\\") # Establezco el Working Directory
+setwd("~/buckets/b1/") # Establezco el Working Directory
 
 # cargo los datos
 dataset <- fread("./datasets/dataset_pequeno.csv")
