@@ -179,10 +179,16 @@ EstimarGanancia <- function(x) {
 # Aqui empieza el programa
 
 # Establezco el Working Directory
-setwd("~/buckets/b1/")
+# Desde la VM Desktop
+# setwd("~/buckets/b1/")
+# Desde Windows Local 
+setwd("C:\\lab01\\buckets\\b1")
 
 # cargo los datos
-dataset <- fread("./datasets/dataset_pequeno.csv")
+# desde la VM Desktop
+# dataset <- fread("./datasets/dataset_pequeno.csv")
+# Desde Windows Local
+dataset <- fread("C:\\lab01\\datasets\\dataset_pequeno.csv")
 # trabajo solo con los datos con clase, es decir 202107
 dataset <- dataset[clase_ternaria != ""]
 
