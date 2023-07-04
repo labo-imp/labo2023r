@@ -8,7 +8,7 @@ require("data.table")
 require("rpart")
 require("parallel")
 
-ksemillas <- c(102191, 200177, 410551, 552581, 892237) # reemplazar por las propias semillas
+ksemillas <- c(999983, 330359, 816161, 697687, 697697) # reemplazar por las propias semillas
 
 #------------------------------------------------------------------------------
 # particionar agrega una columna llamada fold a un dataset que consiste en una particion estratificada segun agrupa
@@ -70,7 +70,7 @@ ArbolesMontecarlo <- function(semillas, param_basicos) {
     semillas, # paso el vector de semillas, que debe ser el primer parametro de la funcion ArbolEstimarGanancia
     MoreArgs = list(param_basicos), # aqui paso el segundo parametro
     SIMPLIFY = FALSE,
-    mc.cores = 1
+    mc.cores = 5
   ) # se puede subir a 5 si posee Linux o Mac OS
 
   ganancia_promedio <- mean(unlist(ganancias))
@@ -81,7 +81,8 @@ ArbolesMontecarlo <- function(semillas, param_basicos) {
 #------------------------------------------------------------------------------
 
 # Aqui se debe poner la carpeta de la computadora local
-setwd("X:\\gdrive\\austral2023r\\") # Establezco el Working Directory
+setwd("/home/nestor_dileo2009") # Establezco el Working Directory
+
 # cargo los datos
 
 # cargo los datos
@@ -95,7 +96,7 @@ dataset <- dataset[clase_ternaria != ""]
 # HT  representa  Hiperparameter Tuning
 dir.create("./exp/", showWarnings = FALSE)
 dir.create("./exp/HT2020/", showWarnings = FALSE)
-archivo_salida <- "./exp/HT2020/gridsearch.txt"
+archivo_salida <- "./exp/HT2020/gridsearch2.txt"
 
 # Escribo los titulos al archivo donde van a quedar los resultados
 # atencion que si ya existe el archivo, esta instruccion LO SOBREESCRIBE, y lo que estaba antes se pierde
@@ -103,35 +104,43 @@ archivo_salida <- "./exp/HT2020/gridsearch.txt"
 cat(
   file = archivo_salida,
   sep = "",
+  "cp", "\t",
   "max_depth", "\t",
   "min_split", "\t",
+  "min_bucket", "\t",
   "ganancia_promedio", "\n"
 )
 
 
 # itero por los loops anidados para cada hiperparametro
 
-for (vmax_depth in c(4, 6, 8, 10, 12, 14)){
+for (vmax_depth in c(4, 6, 8, 9, 10, 11, 12, 13, 14, 21)){
   for (vmin_split in c(1000, 800, 600, 400, 200, 100, 50, 20, 10))  {
-    # notar como se agrega
-    param_basicos <- list(
-      "cp" = -0.5, # complejidad minima
-      "minsplit" = vmin_split, # minima cantidad de registros en un nodo para hacer el split
-      "minbucket" = 5, # minima cantidad de registros en una hoja
-      "maxdepth" = vmax_depth
-    ) # profundidad máxima del arbol
+    for(vmin_bucket in c(500, 400, 300, 200, 100, 50, 20, 10, 5)) {
+      for(vcp in c(-1, -0.75, -0.50, -0.25, 0.05)){
+      # notar como se agrega
+      param_basicos <- list(
+        "cp" = vcp, # complejidad minima, debiera estar entre 0 y 0.2
+        "minsplit" = vmin_split, # minima cantidad de registros en un nodo para hacer el split
+        "minbucket" = vmin_bucket, # minima cantidad de registros en una hoja
+        "maxdepth" = vmax_depth) # profundidad máxima del arbol
 
-    # Un solo llamado, con la semilla 17
-    ganancia_promedio <- ArbolesMontecarlo(ksemillas, param_basicos)
+      # Un solo llamado, con la semilla 17
+      ganancia_promedio <- ArbolesMontecarlo(ksemillas, param_basicos)
 
-    # escribo los resultados al archivo de salida
-    cat(
-      file = archivo_salida,
-      append = TRUE,
-      sep = "",
-      vmax_depth, "\t",
-      vmin_split, "\t",
-      ganancia_promedio, "\n"
-    )
+      # escribo los resultados al archivo de salida
+      cat(
+        file = archivo_salida,
+        append = TRUE,
+        sep = "",
+        vcp, "\t",
+        vmax_depth, "\t",
+        vmin_split, "\t",
+        vmin_bucket, "\t",
+        ganancia_promedio, "\n")
+      }
+    }
   }
 }
+
+
