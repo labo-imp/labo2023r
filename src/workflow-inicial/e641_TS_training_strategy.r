@@ -18,18 +18,18 @@ PARAM$exp_input <- "FE9310"
 # me salteo los meses duros de pandemia, pero llego hasta 201907 en training
 # entreno en 18 meses
 
-PARAM$future <- c(202109)
+PARAM$future <- c(202107)
 PARAM$final_train <- c(
-  201912, 202001, 202002, 202011, 202012,
-  202101, 202102, 202103, 202104, 202105, 202106, 202107
+  201907, 201908, 201909, 201910, 201911, 201912, 202001, 202002, 202008, 202009, 202010, 202011, 202012,
+  202101, 202102, 202103, 202104, 202105
 )
 
 PARAM$train$training <- c(
- 201907, 201908, 201909, 201910, 201911, 201912, 202001, 202002, 202011, 202012, 202101, 202102
+ 201905, 201906, 201907, 201908, 201909, 201910, 201911, 201912, 202001, 202002, 202008, 202009, 202010, 202011, 202012, 202101, 202102, 202103
 )
 
 PARAM$train$validation <- c(202104)
-PARAM$train$testing <- c(202107) # solo testeo con un solo mes
+PARAM$train$testing <- c(202105) # solo testeo con un solo mes
 
 # Atencion  0.1  de  undersampling de la clase mayoritaria,  los CONTINUA
 # 1.0 significa NO undersampling ,  0.1  es quedarse con el 10% de los CONTINUA
