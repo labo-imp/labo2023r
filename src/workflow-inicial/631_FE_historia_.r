@@ -23,41 +23,41 @@ PARAM$exp_input <- "DR6210"
 
 PARAM$lag1 <- TRUE
 PARAM$lag2 <- TRUE
-PARAM$lag3 <- FALSE
+PARAM$lag3 <- TRUE
 
 PARAM$Tendencias1$run <- TRUE
-PARAM$Tendencias1$ventana <- 6
+PARAM$Tendencias1$ventana <- 4
 PARAM$Tendencias1$tendencia <- TRUE
-PARAM$Tendencias1$minimo <- FALSE
-PARAM$Tendencias1$maximo <- FALSE
-PARAM$Tendencias1$promedio <- FALSE
-PARAM$Tendencias1$ratioavg <- FALSE
-PARAM$Tendencias1$ratiomax <- FALSE
+PARAM$Tendencias1$minimo <- TRUE
+PARAM$Tendencias1$maximo <- TRUE
+PARAM$Tendencias1$promedio <- TRUE
+PARAM$Tendencias1$ratioavg <- TRUE
+PARAM$Tendencias1$ratiomax <- TRUE
 
-PARAM$Tendencias2$run <- FALSE
-PARAM$Tendencias2$ventana <- 6
+PARAM$Tendencias2$run <- TRUE
+PARAM$Tendencias2$ventana <- 4
 PARAM$Tendencias2$tendencia <- TRUE
-PARAM$Tendencias2$minimo <- FALSE
-PARAM$Tendencias2$maximo <- FALSE
-PARAM$Tendencias2$promedio <- FALSE
-PARAM$Tendencias2$ratioavg <- FALSE
-PARAM$Tendencias2$ratiomax <- FALSE
+PARAM$Tendencias2$minimo <- TRUE
+PARAM$Tendencias2$maximo <- TRUE
+PARAM$Tendencias2$promedio <- TRUE
+PARAM$Tendencias2$ratioavg <- TRUE
+PARAM$Tendencias2$ratiomax <- TRUE
 
 
 PARAM$RandomForest$run <- TRUE
-PARAM$RandomForest$num.trees <- 20
-PARAM$RandomForest$max.depth <- 4
+PARAM$RandomForest$num.trees <- 15
+PARAM$RandomForest$max.depth <- 5
 PARAM$RandomForest$min.node.size <- 1000
 PARAM$RandomForest$mtry <- 40
-PARAM$RandomForest$semilla <- 102191 # cambiar por la propia semilla
+PARAM$RandomForest$semilla <- 387763 # cambiar por la propia semilla
 
 
 # varia de 0.0 a 2.0, si es 0.0 NO se activan
-PARAM$CanaritosAsesinos$ratio <- 0.0
+PARAM$CanaritosAsesinos$ratio <- 1.4
 # desvios estandar de la media, para el cutoff
 PARAM$CanaritosAsesinos$desvios <- 4.0
 # cambiar por la propia semilla
-PARAM$CanaritosAsesinos$semilla <- 200177
+PARAM$CanaritosAsesinos$semilla <- 387763
 
 PARAM$home <- "~/buckets/b1/"
 # FIN Parametros del script
