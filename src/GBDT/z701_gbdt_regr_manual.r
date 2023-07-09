@@ -1,7 +1,7 @@
 # Gradient Boosting of Decision Trees
 # Regresion
 # Stumps   , arboles de dos hojas
-
+#Prueba con Gero
 
 # limpio la memoria
 rm(list = ls(all.names = TRUE)) # remove all objects
