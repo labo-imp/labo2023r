@@ -6,12 +6,14 @@ require("data.table")
 require("rpart")
 require("rpart.plot")
 
-ksemilla_azar <- 102191 # cambiar por la primer semilla
+ksemilla_azar <- 666707 # cambiar por la primer semilla
 
-setwd("~/buckets/b1/") # establezco la carpeta donde voy a trabajar
+setwd("C:/Users/Sebastian/Documents/GitHub/SP/") # Aqui se debe poner la ruta de la PC local
 
 # cargo los datos
-dataset <- fread("./datasets/competencia_2023.csv.gz")
+
+dataset <- fread("C:/SP/Austral/2023/Labo 1/datasets/competencia_2023.csv.gz") # cargo el dataset #cargo el dataset
+
 
 # Esta parte se agregar para testear la hipotesis de Rodrigo
 # Creo un dataset con TODOS los meses hasta 202107
@@ -30,7 +32,7 @@ dir.create("./exp/EA4850/", showWarnings = FALSE)
 setwd("./exp/EA4850")
 
 # uso esta semilla para los canaritos
-set.seed(102191)
+set.seed(666707)
 
 # agrego 30 variables canarito,
 #  random distribucion uniforme en el intervalo [0,1]
