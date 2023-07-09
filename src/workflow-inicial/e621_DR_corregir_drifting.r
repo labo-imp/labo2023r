@@ -11,9 +11,9 @@ require("yaml")
 
 # Parametros del script
 PARAM <- list()
-PARAM$experimento <- "DR9210"
+PARAM$experimento <- "DR7210"
 
-PARAM$exp_input <- "CA9110"
+PARAM$exp_input <- "CA7110"
 
 PARAM$variables_intrames <- TRUE # atencion esto esta en TRUE
 
@@ -45,7 +45,7 @@ GrabarOutput <- function() {
 AgregarVariables_IntraMes <- function(dataset) {
   gc()
   # INICIO de la seccion donde se deben hacer cambios con variables nuevas
-
+  
   # creo un ctr_quarter que tenga en cuenta cuando
   # los clientes hace 3 menos meses que estan
   dataset[, ctrx_quarter_normalizado := ctrx_quarter]
@@ -55,41 +55,41 @@ AgregarVariables_IntraMes <- function(dataset) {
     cliente_antiguedad == 3,
     ctrx_quarter_normalizado := ctrx_quarter * 1.2
   ]
-
+  
   # variable extraida de una tesis de maestria de Irlanda
   dataset[, mpayroll_sobre_edad := mpayroll / cliente_edad]
-
+  
   # se crean los nuevos campos para MasterCard  y Visa,
   #  teniendo en cuenta los NA's
   # varias formas de combinar Visa_status y Master_status
   dataset[, vm_status01 := pmax(Master_status, Visa_status, na.rm = TRUE)]
   dataset[, vm_status02 := Master_status + Visa_status]
-
+  
   dataset[, vm_status03 := pmax(
     ifelse(is.na(Master_status), 10, Master_status),
     ifelse(is.na(Visa_status), 10, Visa_status)
   )]
-
+  
   dataset[, vm_status04 := ifelse(is.na(Master_status), 10, Master_status)
-    + ifelse(is.na(Visa_status), 10, Visa_status)]
-
+          + ifelse(is.na(Visa_status), 10, Visa_status)]
+  
   dataset[, vm_status05 := ifelse(is.na(Master_status), 10, Master_status)
-    + 100 * ifelse(is.na(Visa_status), 10, Visa_status)]
-
+          + 100 * ifelse(is.na(Visa_status), 10, Visa_status)]
+  
   dataset[, vm_status06 := ifelse(is.na(Visa_status),
-    ifelse(is.na(Master_status), 10, Master_status),
-    Visa_status
+                                  ifelse(is.na(Master_status), 10, Master_status),
+                                  Visa_status
   )]
-
+  
   dataset[, mv_status07 := ifelse(is.na(Master_status),
-    ifelse(is.na(Visa_status), 10, Visa_status),
-    Master_status
+                                  ifelse(is.na(Visa_status), 10, Visa_status),
+                                  Master_status
   )]
-
-
+  
+  
   # combino MasterCard y Visa
   dataset[, vm_mfinanciacion_limite := rowSums(cbind(Master_mfinanciacion_limite, Visa_mfinanciacion_limite), na.rm = TRUE)]
-
+  
   dataset[, vm_Fvencimiento := pmin(Master_Fvencimiento, Visa_Fvencimiento, na.rm = TRUE)]
   dataset[, vm_Finiciomora := pmin(Master_Finiciomora, Visa_Finiciomora, na.rm = TRUE)]
   dataset[, vm_msaldototal := rowSums(cbind(Master_msaldototal, Visa_msaldototal), na.rm = TRUE)]
@@ -109,7 +109,7 @@ AgregarVariables_IntraMes <- function(dataset) {
   dataset[, vm_cconsumos := rowSums(cbind(Master_cconsumos, Visa_cconsumos), na.rm = TRUE)]
   dataset[, vm_cadelantosefectivo := rowSums(cbind(Master_cadelantosefectivo, Visa_cadelantosefectivo), na.rm = TRUE)]
   dataset[, vm_mpagominimo := rowSums(cbind(Master_mpagominimo, Visa_mpagominimo), na.rm = TRUE)]
-
+  
   # a partir de aqui juego con la suma de Mastercard y Visa
   dataset[, vmr_Master_mlimitecompra := Master_mlimitecompra / vm_mlimitecompra]
   dataset[, vmr_Visa_mlimitecompra := Visa_mlimitecompra / vm_mlimitecompra]
@@ -127,16 +127,16 @@ AgregarVariables_IntraMes <- function(dataset) {
   dataset[, vmr_mpagosdolares := vm_mpagosdolares / vm_mlimitecompra]
   dataset[, vmr_mconsumototal := vm_mconsumototal / vm_mlimitecompra]
   dataset[, vmr_mpagominimo := vm_mpagominimo / vm_mlimitecompra]
-
+  
   # Aqui debe usted agregar sus propias nuevas variables
-
+  
   # valvula de seguridad para evitar valores infinitos
   # paso los infinitos a NULOS
   infinitos <- lapply(
     names(dataset),
     function(.name) dataset[, sum(is.infinite(get(.name)))]
   )
-
+  
   infinitos_qty <- sum(unlist(infinitos))
   if (infinitos_qty > 0) {
     cat(
@@ -145,8 +145,8 @@ AgregarVariables_IntraMes <- function(dataset) {
     )
     dataset[mapply(is.infinite, dataset)] <<- NA
   }
-
-
+  
+  
   # valvula de seguridad para evitar valores NaN  que es 0/0
   # paso los NaN a 0 , decision polemica si las hay
   # se invita a asignar un valor razonable segun la semantica del campo creado
@@ -154,14 +154,14 @@ AgregarVariables_IntraMes <- function(dataset) {
     names(dataset),
     function(.name) dataset[, sum(is.nan(get(.name)))]
   )
-
+  
   nans_qty <- sum(unlist(nans))
   if (nans_qty > 0) {
     cat(
       "ATENCION, hay", nans_qty,
       "valores NaN 0/0 en tu dataset. Seran pasados arbitrariamente a 0\n"
     )
-
+    
     cat("Si no te gusta la decision, modifica a gusto el programa!\n\n")
     dataset[mapply(is.nan, dataset)] <<- 0
   }
@@ -179,7 +179,7 @@ drift_deflacion <- function(campos_monetarios) {
     202101, 202102, 202103, 202104, 202105, 202106,
     202107, 202108, 202109
   )
-
+  
   vIPC <- c(
     1.9903030878, 1.9174403544, 1.8296186587,
     1.7728862972, 1.7212488323, 1.6776304408,
@@ -193,16 +193,16 @@ drift_deflacion <- function(campos_monetarios) {
     0.8532444140, 0.8251880213, 0.8003763543,
     0.7763107219, 0.7566381305, 0.7289384687
   )
-
+  
   tb_IPC <- data.table(
     "foto_mes" = vfoto_mes,
     "IPC" = vIPC
   )
-
+  
   dataset[tb_IPC,
-    on = c("foto_mes"),
-    (campos_monetarios) := .SD * i.IPC,
-    .SDcols = campos_monetarios
+          on = c("foto_mes"),
+          (campos_monetarios) := .SD * i.IPC,
+          .SDcols = campos_monetarios
   ]
 }
 
@@ -213,7 +213,7 @@ drift_rank_simple <- function(campos_drift) {
   {
     cat(campo, " ")
     dataset[, paste0(campo, "_rank") :=
-      (frank(get(campo), ties.method = "random") - 1) / (.N - 1), by = foto_mes]
+              (frank(get(campo), ties.method = "random") - 1) / (.N - 1), by = foto_mes]
     dataset[, (campo) := NULL]
   }
 }
@@ -228,10 +228,10 @@ drift_rank_cero_fijo <- function(campos_drift) {
     cat(campo, " ")
     dataset[get(campo) == 0, paste0(campo, "_rank") := 0]
     dataset[get(campo) > 0, paste0(campo, "_rank") :=
-      frank(get(campo), ties.method = "random") / .N, by = foto_mes]
-
+              frank(get(campo), ties.method = "random") / .N, by = foto_mes]
+    
     dataset[get(campo) < 0, paste0(campo, "_rank") :=
-      -frank(-get(campo), ties.method = "random") / .N, by = foto_mes]
+              -frank(-get(campo), ties.method = "random") / .N, by = foto_mes]
     dataset[, (campo) := NULL]
   }
 }
@@ -266,23 +266,23 @@ setorder(dataset, foto_mes, numero_de_cliente)
 #  estos son los campos que expresan variables monetarias
 campos_monetarios <- colnames(dataset)
 campos_monetarios <- campos_monetarios[campos_monetarios %like%
-  "^(m|Visa_m|Master_m|vm_m)"]
+                                         "^(m|Visa_m|Master_m|vm_m)"]
 
 # aqui aplico un metodo para atacar el data drifting
 # hay que probar experimentalmente cual funciona mejor
 switch(PARAM$metodo,
-  "ninguno"        = cat("No hay correccion del data drifting"),
-  "rank_simple"    = drift_rank_simple(campos_monetarios),
-  "rank_cero_fijo" = drift_rank_cero_fijo(campos_monetarios),
-  "deflacion"      = drift_deflacion(campos_monetarios)
+       "ninguno"        = cat("No hay correccion del data drifting"),
+       "rank_simple"    = drift_rank_simple(campos_monetarios),
+       "rank_cero_fijo" = drift_rank_cero_fijo(campos_monetarios),
+       "deflacion"      = drift_deflacion(campos_monetarios)
 )
 
 
 
 fwrite(dataset,
-  file = "dataset.csv.gz",
-  logical01 = TRUE,
-  sep = ","
+       file = "dataset.csv.gz",
+       logical01 = TRUE,
+       sep = ","
 )
 
 #------------------------------------------------------------------------------
@@ -301,8 +301,8 @@ tb_campos <- as.data.table(list(
 ))
 
 fwrite(tb_campos,
-  file = "dataset.campos.txt",
-  sep = "\t"
+       file = "dataset.campos.txt",
+       sep = "\t"
 )
 
 #------------------------------------------------------------------------------
@@ -313,6 +313,6 @@ GrabarOutput()
 
 # dejo la marca final
 cat(format(Sys.time(), "%Y%m%d %H%M%S"), "\n",
-  file = "zRend.txt",
-  append = TRUE
+    file = "zRend.txt",
+    append = TRUE
 )

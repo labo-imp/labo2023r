@@ -35,8 +35,8 @@ require("lightgbm")
 
 # Parametros del script
 PARAM <- list()
-PARAM$experimento <- "ZZ9610"
-PARAM$exp_input <- "HT9510"
+PARAM$experimento <- "ZZ6610"
+PARAM$exp_input <- "HT6510"
 
 # Atencion, que cada modelos se procesa con 5 semillas, ajuste a SUS necesidades
 # Que modelos quiero, segun su posicion en el ranking e la Bayesian Optimizacion, ordenado por ganancia descendente
@@ -45,8 +45,8 @@ PARAM$modelos_rank <- c(1)
 # reemplazar por las propias semillas
 PARAM$semillas <- c(509067, 09067, 102359, 236437, 511583, 101237, 104729)
 
-PARAM$kaggle$envios_desde <- 8000L
-PARAM$kaggle$envios_hasta <- 13500L
+PARAM$kaggle$envios_desde <- 9500L
+PARAM$kaggle$envios_hasta <- 11500L
 PARAM$kaggle$envios_salto <- 500L
 
 # para el caso que deba graficar
@@ -81,7 +81,7 @@ base_dir <- "~/buckets/b1/"
 
 # creo la carpeta donde va el experimento
 dir.create(paste0(base_dir, "exp/", PARAM$experimento, "/"),
-  showWarnings = FALSE
+           showWarnings = FALSE
 )
 
 # Establezco el Working Directory DEL EXPERIMENTO
@@ -126,11 +126,11 @@ for (modelo_rank in PARAM$modelos_rank) {
   imodelo <- imodelo + 1L
   cat("\nmodelo_rank: ", modelo_rank, ", semillas: ")
   OUTPUT$status$modelo_rank <- modelo_rank
-
+  
   parametros <- as.list(copy(tb_log[modelo_rank]))
   iteracion_bayesiana <- parametros$iteracion_bayesiana
-
-
+  
+  
   # creo CADA VEZ el dataset de lightgbm
   dtrain <- lgb.Dataset(
     data = data.matrix(dataset[, campos_buenos, with = FALSE]),
@@ -138,9 +138,9 @@ for (modelo_rank in PARAM$modelos_rank) {
     weight = dataset[, ifelse(clase_ternaria %in% c("BAJA+2"), 1.0000001, 1.0)],
     free_raw_data = FALSE
   )
-
+  
   ganancia <- parametros$ganancia
-
+  
   # elimino los parametros que no son de lightgbm
   parametros$experimento <- NULL
   parametros$cols <- NULL
@@ -149,28 +149,28 @@ for (modelo_rank in PARAM$modelos_rank) {
   parametros$estimulos <- NULL
   parametros$ganancia <- NULL
   parametros$iteracion_bayesiana <- NULL
-
+  
   #  parametros$num_iterations  <- 10  # esta linea es solo para pruebas
-
+  
   if (future_con_clase) {
     tb_ganancias <-
       as.data.table(list("envios" = 1:1:PARAM$graficar$envios_hasta))
-
+    
     tb_ganancias[, gan_sum := 0.0]
   }
-
+  
   sem <- 0L
-
+  
   for (vsemilla in PARAM$semillas)
   {
     sem <- sem + 1L
     cat(sem, " ")
     OUTPUT$status$sem <- sem
     GrabarOutput()
-
+    
     # Utilizo la semilla definida en este script
     parametros$seed <- vsemilla
-
+    
     nombre_raiz <- paste0(
       sprintf("%02d", modelo_rank),
       "_",
@@ -178,13 +178,13 @@ for (modelo_rank in PARAM$modelos_rank) {
       "_s",
       parametros$seed
     )
-
+    
     arch_modelo <- paste0(
       "modelo_",
       nombre_raiz,
       ".model"
     )
-
+    
     # genero el modelo entrenando en los datos finales
     set.seed(parametros$seed, kind = "L'Ecuyer-CMRG")
     modelo_final <- lightgbm(
@@ -192,66 +192,66 @@ for (modelo_rank in PARAM$modelos_rank) {
       param = parametros,
       verbose = -100
     )
-
+    
     # grabo el modelo, achivo .model
     lgb.save(modelo_final,
-      file = arch_modelo
+             file = arch_modelo
     )
-
+    
     # creo y grabo la importancia de variables
     tb_importancia <- as.data.table(lgb.importance(modelo_final))
     fwrite(tb_importancia,
-      file = paste0(
-        "impo_",
-        nombre_raiz,
-        ".txt"
-      ),
-      sep = "\t"
+           file = paste0(
+             "impo_",
+             nombre_raiz,
+             ".txt"
+           ),
+           sep = "\t"
     )
-
-
+    
+    
     # genero la prediccion, Scoring
     prediccion <- predict(
       modelo_final,
       data.matrix(dfuture[, campos_buenos, with = FALSE])
     )
-
+    
     tb_prediccion <-
       dfuture[, list(numero_de_cliente, foto_mes, clase_ternaria)]
-
+    
     tb_prediccion[, prob := prediccion]
-
-
+    
+    
     nom_pred <- paste0(
       "pred_",
       nombre_raiz,
       ".csv"
     )
-
+    
     fwrite(
       tb_prediccion[, list(numero_de_cliente, foto_mes, prob, clase_ternaria)],
       file = nom_pred,
       sep = "\t"
     )
-
-
+    
+    
     # genero los archivos para Kaggle
     cortes <- seq(
       from = PARAM$kaggle$envios_desde,
       to = PARAM$kaggle$envios_hasta,
       by = PARAM$kaggle$envios_salto
     )
-
-
+    
+    
     setorder(tb_prediccion, -prob)
-
+    
     if (!future_con_clase) {
       # genero los archivos para Kaggle
       for (corte in cortes)
       {
         tb_prediccion[, Predicted := 0L]
         tb_prediccion[1:corte, Predicted := 1L]
-
+        
         nom_submit <- paste0(
           PARAM$experimento,
           "_",
@@ -260,37 +260,37 @@ for (modelo_rank in PARAM$modelos_rank) {
           sprintf("%05d", corte),
           ".csv"
         )
-
+        
         fwrite(tb_prediccion[, list(numero_de_cliente, Predicted)],
-          file = nom_submit,
-          sep = ","
+               file = nom_submit,
+               sep = ","
         )
       }
     }
-
+    
     if (future_con_clase) {
       tb_prediccion[, ganancia_acum :=
-        cumsum(ifelse(clase_ternaria == "BAJA+2", 117000, -3000))]
-
+                      cumsum(ifelse(clase_ternaria == "BAJA+2", 117000, -3000))]
+      
       tb_ganancias[, paste0("g", sem) :=
-        tb_prediccion[1:PARAM$graficar$envios_hasta, ganancia_acum]]
-
+                     tb_prediccion[1:PARAM$graficar$envios_hasta, ganancia_acum]]
+      
       tb_ganancias[, gan_sum :=
-        gan_sum + tb_prediccion[1:PARAM$graficar$envios_hasta, ganancia_acum]]
+                     gan_sum + tb_prediccion[1:PARAM$graficar$envios_hasta, ganancia_acum]]
     }
-
+    
     # borro y limpio la memoria para la vuelta siguiente del for
     rm(tb_prediccion)
     rm(tb_importancia)
     rm(modelo_final)
     gc()
   }
-
-
+  
+  
   if (future_con_clase) {
     qsemillas <- length(PARAM$semillas)
     tb_ganancias[, gan_sum := gan_sum / qsemillas]
-
+    
     # calculo la mayor ganancia  SUAVIZADA
     tb_ganancias[, gan_suavizada := frollmean(
       x = gan_sum,
@@ -299,18 +299,18 @@ for (modelo_rank in PARAM$modelos_rank) {
       na.rm = TRUE,
       hasNA = TRUE
     )]
-
+    
     ganancia_suavizada_max <- tb_ganancias[, max(gan_suavizada, na.rm = TRUE)]
-
+    
     vganancias_suavizadas <- c(vganancias_suavizadas, ganancia_suavizada_max)
-
+    
     ymax <- max(tb_ganancias, na.rm = TRUE)
-
+    
     campos_ganancias <- setdiff(colnames(tb_ganancias), "envios")
     ymin <- min(tb_ganancias[envios >= PARAM$graficar$envios_desde, campos_ganancias, with=FALSE ],
-      na.rm = TRUE
+                na.rm = TRUE
     )
-
+    
     arch_grafico <- paste0(
       "modelo_",
       sprintf("%02d", modelo_rank),
@@ -318,9 +318,9 @@ for (modelo_rank in PARAM$modelos_rank) {
       sprintf("%03d", iteracion_bayesiana),
       ".pdf"
     )
-
+    
     pdf(arch_grafico)
-
+    
     plot(
       x = tb_ganancias[envios >= PARAM$graficar$envios_desde, envios],
       y = tb_ganancias[envios >= PARAM$graficar$envios_desde, g1],
@@ -333,7 +333,7 @@ for (modelo_rank in PARAM$modelos_rank) {
       ylab = "Ganancia",
       panel.first = grid()
     )
-
+    
     # las siguientes curvas
     if (qsemillas > 1) {
       for (s in 2:qsemillas)
@@ -345,16 +345,16 @@ for (modelo_rank in PARAM$modelos_rank) {
         )
       }
     }
-
+    
     # finalmente la curva promedio
     lines(
       x = tb_ganancias[envios >= PARAM$graficar$envios_desde, envios],
       y = tb_ganancias[envios >= PARAM$graficar$envios_desde, gan_sum],
       col = "red"
     )
-
+    
     dev.off()
-
+    
     # grabo las ganancias, para poderlas comparar con OTROS modelos
     arch_ganancias <- paste0(
       "ganancias_",
@@ -363,16 +363,16 @@ for (modelo_rank in PARAM$modelos_rank) {
       sprintf("%03d", iteracion_bayesiana),
       ".txt"
     )
-
+    
     fwrite(tb_ganancias,
-      file = arch_ganancias,
-      sep = "\t",
+           file = arch_ganancias,
+           sep = "\t",
     )
-
+    
     rm(tb_ganancias)
     gc()
   }
-
+  
   # impresion ganancias
   rm(dtrain)
   rm(parametros)
@@ -389,6 +389,6 @@ GrabarOutput()
 
 # dejo la marca final
 cat(format(Sys.time(), "%Y%m%d %H%M%S"), "\n",
-  file = "zRend.txt",
-  append = TRUE
+    file = "zRend.txt",
+    append = TRUE
 )
